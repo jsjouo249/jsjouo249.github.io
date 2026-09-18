@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="처음엔 point를 user의 속성이라고 생각했지만, 지금은 독립된 책임을 가진 PointAccount로 이해한다."
+    />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>루퍼스 2주차 기록 — JSJ.LOG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Noto+Sans+KR:wght@400;500;600;700;800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles.css" />
+    <script>
+      const savedTheme = localStorage.getItem("theme");
+      const preferredTheme = window.matchMedia("(prefers-color-scheme: light)").matches
+        ? "light"
+        : "dark";
+      document.documentElement.dataset.theme = savedTheme || preferredTheme;
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">본문으로 바로가기</a>
+
+    <header class="site-header">
+      <a class="brand" href="../index.html" aria-label="JSJ.LOG 홈">
+        <span class="brand-mark" aria-hidden="true">{ }</span>
+        <span>JSJ.LOG</span>
+      </a>
+
+      <nav class="site-nav" aria-label="주요 메뉴">
+        <a href="../index.html#writing">Writing</a>
+        <a href="../index.html#about">About</a>
+        <a href="https://github.com/jsjouo249" target="_blank" rel="noreferrer">GitHub</a>
+      </nav>
+
+      <button class="theme-toggle" type="button" aria-label="밝은 테마로 전환">
+        <svg class="sun-icon" aria-hidden="true" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41" />
+        </svg>
+        <svg class="moon-icon" aria-hidden="true" viewBox="0 0 24 24">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+        </svg>
+      </button>
+    </header>
+
+    <main class="article-main" id="main-content">
+      <header class="article-hero">
+        <div class="article-meta">
+          <span>WEEKLY</span>
+          <time datetime="2026-09-17">2026. 09. 17</time>
+        </div>
+        <div>
+          <p class="article-kicker">LOOPERS · WEEK 02</p>
+          <h1>루퍼스 2주차 기록</h1>
+          <p class="article-description">
+            처음엔 point를 user의 속성이라고 생각했지만, 지금은 독립된 책임을 가진 PointAccount로 이해한다.
+          </p>
+        </div>
+      </header>
+
+      <div class="article-layout">
+        <aside class="article-aside" aria-label="글 태그">
+          <p>TAGS</p>
+          <div class="article-tags">
+            <span>#loopers</span>
+            <span>#weekly</span>
+            <span>#learning</span>
+          </div>
+        </aside>
+
+        <article class="article-body">
+          <h2>user-point 구조를 어떻게 처리해야 할까</h2>
+
+          <h3>1. 상황·예시</h3>
+          <p>지금의 point는 단순 추가만 있기 때문에, 따로 테이블로 빼는 것에 대한 고민을 하였습니다.</p>
+          <pre><code>1. user와 point 테이블을 분리
+2. point테이블은 단순히, id, userId, point_balance만 있는 것을 확인
+3. user테이블에 컬럼으로 추가</code></pre>
+          <p>의 과정을 거쳤습니다.</p>
+          <p>1주차, 2주차 멘토링 동안 제 질문에 대한 공통된 멘토님들의 답변은 YAGNI였습니다.</p>
+          <p>
+            point의 기능이 추가될 것 같지만, 당장은 추가되지 않았고, 요구사항에도 없었기 때문에 user테이블의 컬럼으로 추가하였습니다.
+          </p>
+          <p>
+            멘토링 과정에서, 이 내용에 대한 질문을 드렸고, 멘토님께서는 user테이블의 성격과 point 컬럼의 불일치에 대해 말씀주셨습니다.
+          </p>
+          <p>
+            그래서 단순히 너무 기능적으로만 테이블을 생각했던 것 같아서, 테이블의 성격을 잊고 있었다는 생각이 들었고, 다시 한번 고민을 시작했습니다.
+          </p>
+          <p>
+            하지만, 처음에 생각한 것이 이미 머릿속에 들어왔는지, 지금 요구사항으로는 point도 user의 속성이 될 수도 있지 않을까... 라는 생각이 계속 남아있게 되었고,
+          </p>
+          <p>
+            '간단하게 만드는 것'과 선택과 집중을 하기로 하였고, 설계에는 정답이 없다. 틀리면 오히려 좋아. 의 마인드로 진행했습니다.
+          </p>
+          <p>그래서 제 최종 결론은 point는 user에 남아있다... 입니다.</p>
+          <p>
+            다음 과제를 진행하게 되면서 이 선택이 어떤 파장을 불러일으킬지는 모르겠지만, 당장의 요구사항으로 봤을 때는 이 방법도 그렇게 틀리지 않았다 라고 생각하면서 작업을 하게 된 것 같습니다.
+          </p>
+          <p>
+            다만...User 도메인을 만드니, 실제 user의 동작보다 point의 동작이 더 많은걸 보고, 이래서..멘토님이 이렇게 말씀주신걸까 싶었습니다.
+          </p>
+          <pre><code class="language-kotlin"><span class="code-purple">class</span> <span class="code-blue">User</span> <span class="code-purple">private</span> <span class="code-purple">constructor</span>(
+    <span class="code-purple">val</span> name: <span class="code-blue">String</span>,
+    state: <span class="code-blue">EntityState</span>,
+    balance: <span class="code-blue">Long</span>,
+) {
+    <span class="code-purple">constructor</span>(name: <span class="code-blue">String</span>) : <span class="code-purple">this</span>(name, <span class="code-blue">EntityState</span>(), <span class="code-green">0</span>)
+
+    <span class="code-purple">val</span> id: <span class="code-blue">Long</span> = state.id
+    <span class="code-purple">val</span> createdAt: <span class="code-blue">ZonedDateTime</span> = state.createdAt
+    <span class="code-purple">val</span> updatedAt: <span class="code-blue">ZonedDateTime</span> = state.updatedAt
+
+    <span class="code-purple">var</span> pointBalance: <span class="code-blue">PointBalance</span> = <span class="code-blue">PointBalance</span>(balance)
+        <span class="code-purple">private</span> <span class="code-purple">set</span>
+
+    <span class="code-purple">fun</span> chargePoint(amount: <span class="code-blue">Long</span>) {
+        pointBalance = pointBalance.charge(amount)
+    }
+
+    <span class="code-purple">fun</span> payPoint(amount: <span class="code-blue">Long</span>) {
+        pointBalance = pointBalance.pay(amount)
+    }
+
+    <span class="code-purple">fun</span> assertCanPay(amount: <span class="code-blue">Long</span>) {
+        pointBalance.pay(amount)
+    }
+
+    <span class="code-purple">companion</span> <span class="code-purple">object</span> {
+        <span class="code-purple">fun</span> reconstitute(name: <span class="code-blue">String</span>, balance: <span class="code-blue">Long</span>, state: <span class="code-blue">EntityState</span>): <span class="code-blue">User</span> = <span class="code-blue">User</span>(name, state, balance)
+    }
+}</code></pre>
+          <p>그래서 다시 AI와 논의 후...설계를 변경했습니다.</p>
+          <p>
+            Point를 독립된 애그리거트로 분리하고, VO가 아닌 도메인으로 분리하기 위해, 결국 point용 테이블을 추가하였습니다.
+          </p>
+          <p>다시 한번 테이블을 설계할 때는 테이블의 성격이 중요하다...는걸 다시 깨달았습니다.</p>
+          <pre><code class="language-kotlin"><span class="code-purple">class</span> <span class="code-blue">User</span> <span class="code-purple">private</span> <span class="code-purple">constructor</span>(
+    <span class="code-purple">val</span> name: <span class="code-blue">String</span>,
+    state: <span class="code-blue">EntityState</span>,
+) {
+    <span class="code-purple">constructor</span>(name: <span class="code-blue">String</span>) : <span class="code-purple">this</span>(name, <span class="code-blue">EntityState</span>())
+
+    <span class="code-purple">val</span> id: <span class="code-blue">Long</span> = state.id
+    <span class="code-purple">val</span> createdAt: <span class="code-blue">ZonedDateTime</span> = state.createdAt
+    <span class="code-purple">val</span> updatedAt: <span class="code-blue">ZonedDateTime</span> = state.updatedAt
+
+    <span class="code-purple">companion</span> <span class="code-purple">object</span> {
+        <span class="code-purple">fun</span> reconstitute(name: <span class="code-blue">String</span>, state: <span class="code-blue">EntityState</span>): <span class="code-blue">User</span> = <span class="code-blue">User</span>(name, state)
+    }
+}
+
+<span class="code-purple">class</span> <span class="code-blue">PointAccount</span> <span class="code-purple">private</span> <span class="code-purple">constructor</span>(
+    <span class="code-purple">val</span> userId: <span class="code-blue">Long</span>,
+    balance: <span class="code-blue">Long</span>,
+) {
+    <span class="code-purple">var</span> balance: <span class="code-blue">PointBalance</span> = <span class="code-blue">PointBalance</span>(balance)
+        <span class="code-purple">private</span> <span class="code-purple">set</span>
+
+    <span class="code-purple">init</span> {
+        <span class="code-purple">if</span> (userId &lt;= <span class="code-green">0</span>) <span class="code-purple">throw</span> <span class="code-blue">CommerceException</span>(<span class="code-blue">CommerceFailure</span>.<span class="code-blue">INVALID_REQUEST</span>)
+    }
+
+    <span class="code-purple">fun</span> charge(amount: <span class="code-blue">Long</span>) {
+        balance = balance.charge(amount)
+    }
+
+    <span class="code-purple">fun</span> pay(amount: <span class="code-blue">Long</span>) {
+        balance = balance.pay(amount)
+    }
+
+    <span class="code-purple">fun</span> assertCanPay(amount: <span class="code-blue">Long</span>) {
+        balance.pay(amount)
+    }
+
+    <span class="code-purple">companion</span> <span class="code-purple">object</span> {
+        <span class="code-purple">fun</span> open(userId: <span class="code-blue">Long</span>): <span class="code-blue">PointAccount</span> = <span class="code-blue">PointAccount</span>(userId, <span class="code-green">0</span>)
+
+        <span class="code-purple">fun</span> reconstitute(userId: <span class="code-blue">Long</span>, balance: <span class="code-blue">Long</span>): <span class="code-blue">PointAccount</span> = <span class="code-blue">PointAccount</span>(userId, balance)
+    }
+}</code></pre>
+
+          <h3>2. 판단·이유</h3>
+          <ul>
+            <li>point_balance가 user에 속할 때,</li>
+          </ul>
+
+          <h4>ADR-011: 현재 포인트 잔액은 users 테이블에 저장</h4>
+          <div class="article-table">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">대안</th>
+                  <th scope="col">비용 (단점·트레이드오프)</th>
+                  <th scope="col">선택</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>A. <code>PointBalance</code>를 Value Object로 두고 <code>users.point_balance</code>에 저장</td>
+                  <td>포인트 정책이 독립적으로 성장하면 User 모델과 저장 구조를 다시 분리해야 함</td>
+                  <td>✅</td>
+                </tr>
+                <tr>
+                  <td>B. 사용자별 <code>point_balances</code> 테이블과 별도 Aggregate Root를 둠</td>
+                  <td>사용자당 잔액 하나를 위해 별도 행을 두고, User와의 1:1 무결성을 따로 관리해야 함</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>A를 선택한 이유는 다음과 같습니다.</p>
+          <ul>
+            <li>사용자당 <strong>현재 잔액 하나</strong>만 있고, 유효기간·적립 건·거래 이력이 없습니다.</li>
+            <li>잔액은 User와 <strong>생명주기가 같습니다.</strong></li>
+            <li>별도 행과 1:1 무결성을 관리하지 않아도 되고, User가 자신의 잔액 행동(충전·사용)을 직접 책임집니다.</li>
+          </ul>
+          <p>
+            다만 포인트 원장, 포인트 종류, 유효기간, 또는 User와 독립적인 잔액 생명주기가 필요해지면 B로 분리하는 것을 다시 검토하려고 합니다.
+          </p>
+
+          <ul>
+            <li>point를 따로 테이블로 뺏을 때</li>
+          </ul>
+
+          <h4>ADR-011: 포인트 잔액을 독립 PointAccount에 저장</h4>
+          <div class="article-table">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">대안</th>
+                  <th scope="col">비용 (단점·트레이드오프)</th>
+                  <th scope="col">선택</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>A. <code>PointBalance</code> VO를 User가 소유하고 <code>users.point_balance</code>에 저장 (이전 선택)</td>
+                  <td>충전·사용 행동이 User에 쌓여, User가 자기 정보보다 포인트 책임을 더 많이 떠안음</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>B. <code>PointAccount</code>를 별도 Aggregate Root로 두고 <code>PointBalance</code> VO를 그 안에 유지, <code>point_balances.balance</code>에 저장</td>
+                  <td>별도 저장소가 필요하고, 계정 행이 없는 경우를 따로 처리해야 하며, 기존 <code>users.point_balance</code> 데이터를 옮겨야 함</td>
+                  <td>✅</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>이전에 A를 고른 이유는 사용자당 잔액이 하나이고, 유효기간·거래 이력이 없어 단순하다는 것이었습니다.</p>
+          <p>B로 바꾼 이유는 다음과 같습니다.</p>
+          <ul>
+            <li>유상 포인트의 충전·사용과 잔액 불변식은 사용자 표시명과 <strong>독립적인 책임</strong>입니다.</li>
+            <li>User와 생명주기가 같더라도, 반드시 <strong>같은 Aggregate일 필요는 없습니다.</strong></li>
+            <li>실제로 User에 잔액을 두었을 때, User의 행동 대부분이 포인트 행동이었습니다.</li>
+          </ul>
+          <p>
+            다만 User 생성 API가 생기면, User를 만들 때 계정도 함께 여는 방식으로 초기화를 옮기는 것을 다시 검토하려고 합니다.
+          </p>
+
+          <hr class="article-divider" />
+
+          <h2>개인 숙제</h2>
+          <h3>clean architecture</h3>
+          <figure class="article-figure">
+            <img
+              src="../clean_architecture.png"
+              alt="클린 아키텍처 동심원 다이어그램. 바깥부터 Frameworks &amp; Drivers, Interface Adapters, Use Cases, Entities 순서이며, 화살표가 바깥에서 안쪽을 향한다."
+              width="1386"
+              height="1164"
+              loading="lazy"
+            />
+          </figure>
+          <p>
+            기본 개념인 '코드를 계층 구조로 구성하고, 각 계층은 특정 목적(SRP)을 갖도록 하는 것'<br />
+            의존성이 안쪽으로 이동하며, 바깥쪽 레이어는 바로 아래 레이어의 의존하지만, 안쪽 레이어는 바깥쪽 레이어에 의존하지 않음
+          </p>
+
+          <h4>의존성 역전인 DIP는 클린 아키텍처의 핵심</h4>
+          <ul>
+            <li>entities: 필수적인 비즈니스 규칙들의 집합</li>
+            <li>usecase: 특정 어플리케이션에 대한 비즈니스 규칙</li>
+            <li>interface adapter: 도메인과 인프라 사이의 변환기 역할</li>
+            <li>infrastructure: UI, DB, framworks, device 등 I/O 구성 요소 (변동성이 가장 큰 계층)</li>
+          </ul>
+
+          <p>SOLID원칙을 지켜져야, 클린 아키텍처 구성이 가능</p>
+          <ul>
+            <li>
+              Single Responsibility Principle(SRP): 단일 책임 원칙 - 하나의 클래스는 변경되어야 하는 이유가 1개만 존재해야 한다.
+            </li>
+            <li>
+              Open/Closed Principle(OCP): 개방-폐쇄 원칙 - 클래스나 컴포넌트에 기능을 추가할 순 있지만, 기존 기능을 수정할 필요는 없어야 한다.
+            </li>
+            <li>
+              Liskov Substitution Principle(LSP): 리스코프 치환 원칙 - 하위 레벨의 클래스가 상위 레벨의 클래스의 동작에 영향을 주지 않고 대체 가능해야 한다.<br />
+              예)Java의 ArrayList와 LinkedList는 모두 List 인터페이스를 구현하므로 서로 대체 가능
+            </li>
+            <li>
+              Interface Segregation Principle(ISP): 인터페이스 분리 원칙 - 클래스의 인터페이스를 사용하는 다른 클래스와 분리한다.
+            </li>
+            <li>
+              Dependency Inversion Principle(DIP): 의존성 역전 원칙 - 변동성이 작은 클래스는 변동성이 큰 클래스에 의존하면 안된다.
+            </li>
+          </ul>
+
+          <p>
+            멘토링 시간에 배웠던 DIP의 예시는<br />
+            <code>service -&gt; repository &lt;- JpaRepository/RedisRepository</code><br />
+            에 대해서만 적용됐지만,<br />
+            클린 아키텍처에서는
+          </p>
+          <blockquote class="article-quote">
+            <p>'모든 레이어의 코드 의존성은 안쪽을 향하며, 필요한 경계에서 DIP를 활용해 의존성의 방향을 지킨다.'</p>
+          </blockquote>
+          <p>로 이해하면 될 것 같습니다.</p>
+          <p>
+            클린 아키텍처를 배우기 위해선 DIP가 가장 기본이였으며, 이번 멘토링 시간에 멘토님이 시간을 할애해주시면서, DIP에 대해 너무 쉽게 설명을 해주셔서, 이해가 더 쉬웠던 것 같습니다.
+          </p>
+
+          <hr class="article-divider" />
+
+          <h2>짧은 회고</h2>
+          <p>DIP를 코드에 대입해야 하는데, 설계에 대입해 버린 상황이였던 것 같습니다.</p>
+          <p>기능 및 구현의 편의성을 위해 설계를 바꿔버린 생각을 해버린 점이 이번 과제에서 가장 큰 실수였던 것 같습니다.</p>
+          <p>
+            말로 설명을 하지 못하는 지식, 애매하게 아는 지식을 말로 설명할 수 있을 때 까지 공부하고 이해하는 것이 중요하다...는 것을 다시 한번 깨달았습니다.
+          </p>
+
+          <h3>이번 주 목표</h3>
+          <ul class="task-list">
+            <li class="is-done">설계를 해보자</li>
+            <li class="is-done">DIP에 대해 공부해보자</li>
+            <li class="is-done">layered architecture, clean architecture에 대해 공부해보자</li>
+          </ul>
+
+          <h3>아쉬운 점</h3>
+          <ul>
+            <li>
+              기능 구현에 치우쳐 가장 중요한 테이블의 성격을 잊고 작업을 한 것 같다.
+              <ul>
+                <li>
+                  point는 user와 기능 상으로 연결된거지, user의 속하는 데이터가 아님에도 불구하고, 기능 및 구현의 편의성을 위해 user테이블에 컬럼으로 추가한 것이 화근...
+                </li>
+              </ul>
+            </li>
+          </ul>
+
+          <h2>참고 자료</h2>
+          <ul>
+            <li>
+              <a href="https://pusher.com/tutorials/clean-architecture-introduction/#use-cases" target="_blank" rel="noreferrer">https://pusher.com/tutorials/clean-architecture-introduction/#use-cases</a>
+            </li>
+          </ul>
+
+          <nav class="article-footer-nav" aria-label="글 탐색">
+            <a class="text-link" href="../index.html#writing"><span aria-hidden="true">←</span> 글 목록</a>
+          </nav>
+        </article>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>© <span id="current-year">2026</span> JSJ.LOG</p>
+      <p>BUILT WITH CURIOSITY &amp; CODE</p>
+    </footer>
+
+    <script src="../script.js"></script>
+  </body>
+</html>
