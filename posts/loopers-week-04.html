@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="상품 목록의 캐시 갱신 방식을 선택하면서, 어느 정도의 신선도를 보장해야 하는지 고민한 과정을 정리합니다."
+    />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>루퍼스 4주차 기록: 상품 목록 캐시의 신선도 — JSJ.LOG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=Noto+Sans+KR:wght@400;500;600;700;800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles.css" />
+    <script>
+      const savedTheme = localStorage.getItem("theme");
+      const preferredTheme = window.matchMedia("(prefers-color-scheme: light)").matches
+        ? "light"
+        : "dark";
+      document.documentElement.dataset.theme = savedTheme || preferredTheme;
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">본문으로 바로가기</a>
+
+    <header class="site-header">
+      <a class="brand" href="../index.html" aria-label="JSJ.LOG 홈">
+        <span class="brand-mark" aria-hidden="true">{ }</span>
+        <span>JSJ.LOG</span>
+      </a>
+
+      <nav class="site-nav" aria-label="주요 메뉴">
+        <a href="../index.html#writing">Writing</a>
+        <a href="../index.html#about">About</a>
+        <a href="https://github.com/jsjouo249" target="_blank" rel="noreferrer">GitHub</a>
+      </nav>
+
+      <button class="theme-toggle" type="button" aria-label="밝은 테마로 전환">
+        <svg class="sun-icon" aria-hidden="true" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41" />
+        </svg>
+        <svg class="moon-icon" aria-hidden="true" viewBox="0 0 24 24">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+        </svg>
+      </button>
+    </header>
+
+    <main class="article-main" id="main-content">
+      <header class="article-hero">
+        <div class="article-meta">
+          <span>WEEKLY</span>
+          <time datetime="2026-10-16">2026. 10. 16</time>
+        </div>
+        <div>
+          <p class="article-kicker">LOOPERS · WEEK 04</p>
+          <h1>루퍼스 4주차 기록: 상품 목록 캐시의 신선도</h1>
+          <p class="article-description">
+            상품 목록의 캐시 갱신 방식을 선택하면서, 어느 정도의 신선도를 보장해야 하는지 고민한 과정을 정리합니다.
+          </p>
+        </div>
+      </header>
+
+      <div class="article-layout">
+        <aside class="article-aside" aria-label="글 태그">
+          <p>TAGS</p>
+          <div class="article-tags">
+            <span>#loopers</span>
+            <span>#weekly</span>
+            <span>#learning</span>
+          </div>
+        </aside>
+
+        <article class="article-body">
+<h2>상품 목록 캐시는 어디까지 신선해야 할까</h2>
+<h2>1. 상황과 고민</h2>
+<p>이번 과제에서는 상품의 목록을 캐싱하기로 하였습니다.
+캐시를 적용하는 과정에서, 조회를 빠르게 하는 것과 함께 상품의 정보가 변경되었을 때 캐시를 어떻게 최신화할지도 고민하게 되었습니다.</p>
+<p>캐시의 권위 있는 조회를 위해 revision을 도입하는 설계가 있었지만, 과제 기준으로 상품의 목록이나 상세를 위해 revision 컬럼까지 추가하는 것은 과한 것 같다는 생각이 들었습니다.
+처음 질문을 정리할 때는 상품이 추가되거나 삭제될 때 캐시를 최신화하는 방향으로 설명했습니다.
+실제 구현에서는 상품의 이름과 가격, 재고, 브랜드, 좋아요 변경과 주문 확정까지 목록에 영향을 주는 경로를 포함했습니다.
+변경된 목록을 미리 만들어두는 대신, DB 변경이 커밋되면 목록 캐시를 삭제하고 다음 조회에서 다시 채우는 방식입니다.</p>
+<p>1주차, 2주차 멘토링에서 계속 생각하게 되었던 YAGNI를 이번에도 떠올렸습니다.
+당장 필요한 범위에서 설계하고, 필요해졌을 때 추가하는 것이 좋지 않을까...라는 생각이었습니다.</p>
+<p>다만...revision을 제외하고 나니, 제가 선택한 방식으로 어느 정도까지 신선도를 보장할 수 있는지는 다시 고민하게 되었습니다.
+구현을 단순하게 가져가기로 한 것과, 그 방식으로 충분한지 설명할 수 있는 것은 조금 다른 문제라는 생각이 들었습니다.</p>
+<h2>2. revision을 도입하지 않기로 한 이유</h2>
+<p>제가 고민한 방향은 다음과 같았습니다.</p>
+<div class="article-table article-table-prose">
+<table>
+<thead><tr><th scope="col">방향</th><th scope="col">고민한 점</th></tr></thead>
+<tbody>
+<tr><td>revision을 도입하여 캐시와 원본의 버전을 확인</td><td>상품 목록과 상세 조회를 위해 컬럼을 추가하고, 버전을 관리하는 흐름까지 가져가야 하는지</td></tr>
+<tr><td>DB 변경이 커밋된 뒤 목록 캐시를 삭제하고 다음 조회에서 다시 채움</td><td>변경 시점을 기준으로 처리할 수 있지만, 삭제 실패나 이전 조회의 늦은 저장을 어디까지 다룰 것인지</td></tr>
+</tbody>
+</table>
+</div>
+<p>과제에서는 두 번째 방향을 선택했습니다.
+현재 필요한 상품 목록 캐시를 위해 어디까지 구현해야 하는지를 생각했을 때, 우선 커밋 이후 무효화와 TTL을 사용하는 것으로 범위를 잡았습니다.
+다만 삭제된 상품을 다시 노출하지 않는 조건은 유지하기 위해, 캐시 hit에서도 DB를 확인하도록 했습니다.</p>
+<p>하지만 revision 컬럼을 추가하지 않았다는 이유만으로, 제가 선택한 설계가 더 적절하다고 말할 수 있는지는 모르겠습니다.
+반대로 revision을 추가한다고 해도, 어떤 시점에 값을 변경하고 조회에서 어떻게 확인할지까지 정해야 할 것 같습니다.</p>
+<p>결국 방법의 이름만 보고 선택하기보다는, 각각의 방식으로 어떤 상황까지 처리하려는지 먼저 설명할 수 있어야 한다는 생각이 들었습니다.</p>
+<h2>3. 실제로 구현한 캐시의 범위</h2>
+<p>캐시 대상은 공개 상품 목록인 <code>GET /api/v1/products</code>입니다.
+브랜드 필터와 최신순, 가격순, 좋아요순을 구분하고, 페이지와 페이지 크기까지 키에 포함했습니다.
+상품 상세와 개인별 좋아요, 주문, 포인트 조회는 기존 DB 조회를 유지했습니다.</p>
+<pre><code class="language-text">products:v1:list:brand={brandId|all}:sort={sort}:page={page}:size={size}</code></pre>
+<p>저장하는 값에는 상품 목록과 함께 전체 건수와 페이지 정보도 포함했습니다.
+TTL은 저장한 시점부터 30초이며, 조회할 때마다 연장하지 않습니다.</p>
+<h3>변경된 상품 하나만 지우면 되는 걸까</h3>
+<p>상품의 가격이나 좋아요가 바뀌면 정렬 위치가 달라질 수 있고, 추가나 삭제는 전체 건수와 다른 페이지에도 영향을 줄 수 있습니다.
+그래서 이번에는 변경된 상품이 포함된 키를 따로 찾기보다, <code>products:v1:list:</code> 영역 전체를 무효화하도록 했습니다.</p>
+<p>무효화 시점은 DB 커밋 이후입니다.
+<code>ProductListInvalidation.afterCommit()</code>에서 콜백을 등록하고, 실제 커밋에 성공한 뒤 캐시를 삭제합니다.
+롤백된 변경에서는 삭제하지 않고, 정상 경로에서는 변경 요청이 반환되기 전에 삭제를 마칩니다.</p>
+<p>다만 삭제할 때 Redis 전체를 비우는 것은 아니고, 해당 목록 prefix만 SCAN으로 찾은 뒤 최대 200개씩 DEL을 수행하도록 했습니다.
+영역을 통째로 무효화하는 만큼, 다음 요청에서 캐시 miss가 늘어나는 비용은 남아있습니다.</p>
+<h3>캐시 hit에서도 DB를 확인한 이유</h3>
+<p>캐시에 값이 있다고 해서 바로 반환하지는 않습니다.
+캐시된 상품 ID들을 기준으로, 상품과 브랜드가 삭제되지 않았는지 DB에서 한 번에 확인합니다.
+하나라도 노출하면 안 되는 상품이 있다면, 해당 캐시를 사용하지 않고 상품 목록과 전체 건수를 다시 조회합니다.</p>
+<p>처음에는 캐시를 적용하면 DB를 조회하지 않아도 되는 것 아닐까...싶을 수도 있지만, 이번 설계에서는 삭제 상품 비노출을 지키기 위한 조회를 남겼습니다.
+캐시에서 삭제된 상품만 빼버리면 페이지의 상품 수와 전체 건수가 맞지 않을 수 있어서, 페이지 전체를 다시 읽는 방식입니다.</p>
+<p>이 확인은 상품의 현재 가격이나 좋아요 수, 정렬 순서까지 모두 비교하는 것은 아닙니다.
+삭제 여부를 확인하는 것과 목록 전체가 최신인지 확인하는 것은 구분해서 생각해야 할 것 같습니다.</p>
+<h2>4. 측정 결과를 보고 다시 생각한 점</h2>
+<p>아래는 2026년 10월 15일에 남긴 로컬 측정 기록입니다.
+상품 10,000개, 브랜드 10개, 좋아요 관계 45,000건을 준비하고, 브랜드 하나의 가격순 첫 페이지를 조회했습니다.</p>
+<pre><code class="language-http">GET /api/v1/products?brandId=1007&amp;sort=price_asc&amp;page=0&amp;size=20</code></pre>
+<p>각 조건에서 준비 실행 20회 후 100회를 측정했고, 동시 요청 수는 1개입니다.
+HTTP 왕복과 JSON 읽기, 응답 검증까지 포함한 시간이며, cache miss를 만들기 위한 사전 캐시 삭제 시간은 요청 측정에서 제외했습니다.
+최종 DB-only는 테스트에서 캐시 접근을 우회한 비교군입니다.</p>
+<div class="article-table">
+<table>
+<thead><tr><th scope="col">조건</th><th scope="col">요청당 SELECT</th><th scope="col">p50</th><th scope="col">p95</th><th scope="col">p99</th></tr></thead>
+<tbody>
+<tr><td>최초 구현</td><td>5회</td><td>16.72ms</td><td>26.78ms</td><td>38.54ms</td></tr>
+<tr><td>조회 개선만 적용</td><td>3회</td><td>11.91ms</td><td>16.57ms</td><td>19.90ms</td></tr>
+<tr><td>최종 DB-only</td><td>3회</td><td>12.30ms</td><td>17.01ms</td><td>20.02ms</td></tr>
+<tr><td>최종 cache miss</td><td>3회</td><td>16.60ms</td><td>24.56ms</td><td>29.30ms</td></tr>
+<tr><td>최종 cache hit</td><td>1회</td><td>8.98ms</td><td>11.94ms</td><td>15.24ms</td></tr>
+</tbody>
+</table>
+</div>
+<h3>캐시를 넣기 전에도 줄일 수 있는 조회가 있었습니다</h3>
+<p>최초 구현은 목록의 ID, 상품, 브랜드, 좋아요 카운터, 전체 건수를 각각 조회하고 있었습니다.
+좋아요 카운터도 이미 상품의 <code>like_count</code>에 있는 값이었지만, 별도 조회를 하고 있었습니다.</p>
+<p>그래서 기존 인덱스를 이용해 페이지의 ID를 구하는 흐름은 유지하고, 해당 상품과 브랜드, 좋아요 카운터를 한 SELECT로 가져오도록 했습니다.
+그 결과 ID 조회, 표시 데이터 조회, 전체 COUNT의 3회로 줄었습니다.
+새 인덱스를 추가한 것은 아니고, 기존 조회에서 나누어 읽던 데이터를 합친 것입니다.</p>
+<p>이 부분을 보면서, 캐시를 적용하기 전에 현재 조회가 어떤 일을 하고 있는지부터 확인해야겠다는 생각이 들었습니다.
+캐시 hit에서 줄어든 비용과, 캐시가 없어도 줄일 수 있었던 비용을 같이 보면 개선의 이유를 잘못 이해할 수도 있을 것 같습니다.</p>
+<h3>hit의 DB 조회 한 번을 남긴 결과</h3>
+<p>최종 cache hit에서도 삭제 여부를 확인하는 SELECT 한 번은 실행됩니다.
+대신 목록의 ID 선택과 표시 데이터, 전체 COUNT를 다시 조회하지 않습니다.
+최종 100회 측정에서 원본 목록 조회는 DB-only와 miss가 각각 100회, hit가 0회였습니다.
+빈 목록 hit는 확인할 ID가 없어 SELECT도 실행하지 않지만, 위 표는 상품이 있는 페이지를 측정한 결과입니다.</p>
+<p>다만...위 수치만 보고 캐시를 적용하면 항상 더 빠르다고 말하기는 어려울 것 같습니다.
+최종 측정에서는 hit가 빨랐지만, 이전 측정에서는 hit의 p95가 20.84ms로 DB-only의 19.31ms보다 높았던 기록도 있었습니다.
+측정 구간을 맞춰 다시 실행한 기록이고, 로컬 실행 사이의 변동도 있어서 한 번의 지연시간 차이를 캐시의 효과로 단정하지 않으려고 합니다.</p>
+<p>이번 측정에서 분명하게 확인한 것은 SELECT가 5회에서 3회로 줄었고, 최종 hit에서는 삭제 여부 확인 한 번만 남았다는 점입니다.
+반면 miss에서는 DB 조회에 Redis 읽기와 저장 비용까지 더해집니다.</p>
+<p>영역 전체를 지우는 비용도 있었습니다.
+목록 키 501개와 다른 prefix의 키 1,000개를 둔 실험에서는 SCAN 22회, DEL 3회가 실행되었고, 삭제에 18.88ms가 걸렸습니다.
+이것도 한 번의 관측값이지만, 상품을 변경할 때 캐시를 지우는 비용과 그 뒤의 miss까지 같이 봐야 한다는 생각이 들었습니다.</p>
+<h2>5. 캐시가 얼마나 오래되어도 괜찮은 걸까</h2>
+<p>이번 설계에서는 정상적으로 변경과 무효화가 끝난 뒤의 순차 조회는 변경된 DB 결과를 읽도록 했습니다.
+다만 무효화가 실패하거나, 이전 조회가 뒤늦게 캐시를 저장하는 상황에서는 일시적으로 오래된 표시 데이터가 남을 수 있습니다.</p>
+<p>특히 두 번째 상황은 캐시 삭제에 성공했어도 발생할 수 있습니다.
+테스트에서는 다음 순서를 만들어 확인했습니다.</p>
+<pre><code class="language-text">1. 이전 조회가 DB에서 변경 전 데이터를 읽음
+2. 다른 요청이 DB 변경을 커밋하고 목록 캐시를 삭제
+3. 이전 조회가 뒤늦게 변경 전 데이터를 캐시에 저장
+4. 다음 요청이 오래된 캐시를 읽음</code></pre>
+<p>그래서 TTL 30초를 두었다고 해서, DB 변경 후 반드시 30초 안에 모든 조회가 최신이 된다고 말할 수는 없습니다.
+TTL은 캐시에 저장한 시점부터 계산하고, 이전 조회가 늦게 저장하면 그때부터 다시 시작되기 때문입니다.</p>
+<p>이번에는 이름, 표시 가격과 재고, 좋아요 수, 정렬과 전체 건수 등의 일시적인 오래됨은 허용했습니다.
+대신 삭제가 커밋된 뒤 시작한 새 조회에서 삭제 상품을 노출하는 것은 허용하지 않고, 주문 가격과 재고, 포인트 판단은 기존 DB 흐름을 유지했습니다.
+목록에 표시된 가격과 실제 주문 판단에 사용하는 가격의 기준을 구분한 것입니다.</p>
+<p>테스트에서는 무효화 실패와 늦은 저장을 각각 재현하고, 이전 조회 작업이 끝난 뒤 테스트용 만료 시간을 250ms로 줄여 만료와 재채움을 확인했습니다.
+재채움 이후의 miss와 후속 hit는 현재 DB-only 응답과 같았습니다.
+삭제된 상품이 페이지에 남지 않는지, 오래된 표시 가격이 주문 금액으로 사용되지 않는지도 함께 확인하도록 했습니다.</p>
+<p>Redis를 읽지 못하는 경우에는 DB로 조회하고, 같은 요청에서는 캐시 저장을 시도하지 않습니다.
+DB 커밋 이후 캐시 삭제가 실패한 경우에도 이미 성공한 업무를 실패로 돌리거나 다시 실행하지 않고, 실패를 기록하고 관측하도록 했습니다.</p>
+<p>실무에서 sorted set이나 lua script를 검토할 때, 이중 데이터의 관리가 이슈로 논의되었던 경험도 다시 떠올랐습니다.
+그때 검토한 방식과 이번 캐시가 같은 구조는 아니지만, 데이터를 두 곳에 두는 순간 어느 상태를 믿고 언제 다시 맞출 것인지까지 생각해야 한다는 점은 이어지는 것 같았습니다.</p>
+<p>다만 이 범위가 실제 서비스에서도 충분한지는 별개의 고민입니다.
+상품 목록에서 어느 정도의 오래됨을 허용할지는, 사용자가 그 목록을 보고 어떤 행동을 하는지와 함께 정해야 할 것 같습니다.
+그래서 멘토님께도 캐시의 신선도를 허용하는 기준과, 그 기준에 따라 설계를 변경한 경험이 있으신지 질문드리게 되었습니다.</p>
+<h2>짧은 회고</h2>
+<p>2주차에는 기능과 구현의 편의성을 보고 point를 user의 속성으로 생각했다가, 실제 책임을 보면서 설계를 변경했습니다.
+이번에도 revision까지 도입하는 것은 과하지 않을까 생각하면서, 우선 필요한 범위로 설계를 잡았습니다.</p>
+<p>다만 이번에는 필요한 범위라는 것을 무엇을 기준으로 정했는지 다시 생각하게 되었습니다.
+구현에서는 커밋 이후 무효화와 TTL을 사용하면서도, 삭제 여부 확인을 위해 hit의 DB 조회 한 번은 남겼습니다.
+SELECT를 줄였다는 측정 결과와 함께, 어떤 데이터를 잠깐 오래된 상태로 보여줄 수 있고 어떤 조건은 계속 지킬 것인지도 정하게 되었습니다.</p>
+<p>revision을 넣지 않기로 했다고 해서, 정합성에 대한 고민까지 줄어드는 것은 아니었던 것 같습니다.
+단순하게 만든다는 선택에도 그 선택으로 지킬 수 있는 범위와 남는 비용을 설명할 수 있어야 한다는 생각이 들었습니다.</p>
+<p>아직 실무에서는 어느 시점에 이 범위를 바꾸어야 할지 궁금하지만, 이번에는 제가 만든 캐시가 어디까지 보장하는지부터 설명해보는 과제가 되었던 것 같습니다.</p>
+<h2>이번 주 목표</h2>
+<ul class="task-list">
+<li class="is-done">상품 목록 캐시의 실제 갱신 흐름을 정리해보자</li>
+<li class="is-done">조회 개선 전후와 캐시 miss·hit의 조회 시간과 SELECT 횟수를 비교해보자</li>
+<li class="is-done">무효화 실패와 이전 조회의 늦은 저장, 만료 후 재채움을 확인해보자</li>
+</ul>
+
+          <nav class="article-footer-nav" aria-label="글 탐색">
+            <a class="text-link" href="../index.html#writing"><span aria-hidden="true">←</span> 글 목록</a>
+          </nav>
+        </article>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>© <span id="current-year">2026</span> JSJ.LOG</p>
+      <p>BUILT WITH CURIOSITY &amp; CODE</p>
+    </footer>
+
+    <script src="../script.js"></script>
+  </body>
+</html>

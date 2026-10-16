@@ -667,6 +667,12 @@ main,
   text-align: center;
 }
 
+.article-table-prose th:last-child,
+.article-table-prose td:last-child {
+  width: auto;
+  text-align: left;
+}
+
 .article-figure {
   margin: 1.5rem 0 2rem;
 }
